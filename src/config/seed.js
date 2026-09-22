@@ -6,6 +6,7 @@ import { TrainingModule } from "../models/TrainingModule.js";
 import { env } from "./env.js";
 import { DEFAULT_COURSES } from "./seedCatalogue.js";
 import { syncCatalogueFromUza } from "./catalogueSync.js";
+import { seedDemoClassroomIfEmpty } from "./seedClassroom.js";
 
 const DEFAULT_STAFF = [
   {
@@ -102,4 +103,6 @@ export async function seedIfEmpty() {
       { $addToSet: { instructor_ids: instructor._id } },
     );
   }
+
+  await seedDemoClassroomIfEmpty();
 }

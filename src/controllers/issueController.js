@@ -26,3 +26,8 @@ export const update = asyncHandler(async (req, res) => {
   const issue = await issueService.updateIssue(req.user, req.params.issueId, req.body);
   return success(res, { issue }, "Issue updated successfully");
 });
+
+export const remove = asyncHandler(async (req, res) => {
+  const data = await issueService.deleteIssue(req.user, req.params.issueId);
+  return success(res, data, "Issue deleted successfully");
+});

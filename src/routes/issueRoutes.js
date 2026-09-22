@@ -13,5 +13,6 @@ router.patch(
   validate(updateIssueSchema),
   issueController.update,
 );
+router.delete("/:issueId", ...classroom, issueController.remove);
 
 export default router;

@@ -122,3 +122,10 @@ export async function updateIssue(user, issueId, payload) {
   const [serialized] = await withCandidateNames([issue]);
   return serialized;
 }
+
+export async function deleteIssue(user, issueId) {
+  const issue = await loadIssue(issueId);
+  await assertCohortAccess(user, issue.cohort_id);
+  await issue.deleteOne();
+  return { id: String(issueId) };
+}
