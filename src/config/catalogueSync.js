@@ -7,6 +7,23 @@ import { Assessment } from "../models/Assessment.js";
 import { AttendanceSession } from "../models/AttendanceSession.js";
 import { formatCandidateCode, nextCandidateSequence } from "../models/Counter.js";
 
+export async function migrateTrnCandidateCodes() {
+  const rows = await Candidate.find({ candidate_code: /^TRN-/i });
+  let updated = 0;
+  for (const row of rows) {
+    const next = row.candidate_code.replace(/^TRN-/i, "UZA-");
+    const clash = await Candidate.findOne({
+      candidate_code: next,
+      _id: { $ne: row._id },
+    });
+    if (clash) continue;
+    row.candidate_code = next;
+    await row.save();
+    updated += 1;
+  }
+  if (updated) console.log(`Renamed ${updated} candidate IDs from TRN- to UZA-`);
+}
+
 function exportUrl() {
   const base = env.TRAININGS_BN_URL.replace(/\/$/, "");
   if (base.endsWith("/api")) return `${base}/catalogue/export`;
@@ -107,14 +124,22 @@ async function upsertIntake(intake, course) {
       existing.date_of_birth = row.date_of_birth ?? existing.date_of_birth;
       existing.email = row.email || existing.email;
       existing.source = "provided";
+      if (row.candidate_code && existing.candidate_code !== row.candidate_code) {
+        const clash = await Candidate.findOne({
+          candidate_code: row.candidate_code,
+          _id: { $ne: existing._id },
+        });
+        if (!clash) existing.candidate_code = row.candidate_code;
+      }
       await existing.save();
       continue;
     }
 
-    const seq = await nextCandidateSequence();
+    const candidate_code =
+      row.candidate_code || formatCandidateCode(await nextCandidateSequence());
     await Candidate.create({
       cohort_id: cohort._id,
-      candidate_code: formatCandidateCode(seq),
+      candidate_code,
       full_name: row.full_name,
       national_id: row.national_id,
       phone: row.phone,

@@ -5,7 +5,7 @@ import { Course } from "../models/Course.js";
 import { TrainingModule } from "../models/TrainingModule.js";
 import { env } from "./env.js";
 import { DEFAULT_COURSES } from "./seedCatalogue.js";
-import { syncCatalogueFromUza } from "./catalogueSync.js";
+import { syncCatalogueFromUza, migrateTrnCandidateCodes } from "./catalogueSync.js";
 import { seedDemoClassroomIfEmpty } from "./seedClassroom.js";
 
 const DEFAULT_STAFF = [
@@ -83,6 +83,7 @@ export async function seedFallbackCohort(instructor, course) {
 
 export async function seedIfEmpty() {
   await seedStaff();
+  await migrateTrnCandidateCodes();
 
   const instructor = await StaffUser.findOne({ email: "instructor@uza.rw" });
   let synced = false;

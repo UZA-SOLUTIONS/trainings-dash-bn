@@ -18,5 +18,5 @@ export async function nextCandidateSequence() {
 
 export function formatCandidateCode(seq) {
   const year = new Date().getFullYear();
-  return `TRN-${year}-${String(seq).padStart(5, "0")}`;
+  return `UZA-${year}-${String(seq).padStart(5, "0")}`;
 }

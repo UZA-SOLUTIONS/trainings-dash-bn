@@ -2,9 +2,11 @@ import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { connectDatabase } from "./config/database.js";
 import { seedIfEmpty } from "./config/seed.js";
+import { migrateTrnCandidateCodes } from "./config/catalogueSync.js";
 
 async function main() {
   await connectDatabase();
+  await migrateTrnCandidateCodes();
   await seedIfEmpty();
 
   const app = createApp();
