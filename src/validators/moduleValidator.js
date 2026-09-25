@@ -20,6 +20,13 @@ const attachmentSchema = z.object({
   data: z.string().min(1).max(4_200_000).optional().nullable(),
 });
 
+export const addAttachmentSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  mime_type: z.string().trim().min(3).max(120).optional().nullable(),
+  size: z.coerce.number().int().min(1).max(3_000_000).optional().nullable(),
+  data: z.string().min(1).max(4_200_000),
+});
+
 export const createModuleSchema = z.object({
   course_id: objectId,
   name: z.string().trim().min(2).max(120),

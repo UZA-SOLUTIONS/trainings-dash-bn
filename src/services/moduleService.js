@@ -279,6 +279,38 @@ export async function deleteModule(id) {
   return serializeModule(mod);
 }
 
+export async function addModuleAttachment(moduleId, payload) {
+  if (!mongoose.isValidObjectId(moduleId)) {
+    throw new AppError("Module not found", 404, "NOT_FOUND");
+  }
+  const existing = await TrainingModule.findById(moduleId);
+  if (!existing) throw new AppError("Module not found", 404, "NOT_FOUND");
+  if ((existing.attachments || []).length >= 8) {
+    throw new AppError("Maximum 8 documents per module", 400, "ATTACHMENT_LIMIT");
+  }
+  const [att] = await resolveAttachments([payload], []);
+  existing.attachments.push(att);
+  await existing.save();
+  return serializeModule(existing);
+}
+
+export async function removeModuleAttachment(moduleId, attachmentId) {
+  if (!mongoose.isValidObjectId(moduleId) || !mongoose.isValidObjectId(attachmentId)) {
+    throw new AppError("Attachment not found", 404, "NOT_FOUND");
+  }
+  const existing = await TrainingModule.findById(moduleId);
+  if (!existing) throw new AppError("Module not found", 404, "NOT_FOUND");
+  const before = existing.attachments.length;
+  existing.attachments = existing.attachments.filter(
+    (att) => String(att._id) !== String(attachmentId),
+  );
+  if (existing.attachments.length === before) {
+    throw new AppError("Attachment not found", 404, "NOT_FOUND");
+  }
+  await existing.save();
+  return serializeModule(existing);
+}
+
 export async function getModuleAttachment(moduleId, attachmentId, { allowDraft = false } = {}) {
   if (!mongoose.isValidObjectId(moduleId) || !mongoose.isValidObjectId(attachmentId)) {
     throw new AppError("Attachment not found", 404, "NOT_FOUND");

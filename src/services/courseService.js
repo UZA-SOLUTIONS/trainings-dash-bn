@@ -32,13 +32,22 @@ export async function getCourseById(id) {
   }
   const course = await Course.findById(id);
   if (!course) throw new AppError("Course not found", 404, "NOT_FOUND");
-  const modules = await TrainingModule.find({ course_id: id }).sort({ sort_order: 1 });
+  const modules = await TrainingModule.find({ course_id: id })
+    .select("-attachments.data")
+    .sort({ sort_order: 1 });
   return {
     course: serializeCourse(course),
-    modules: toJSONList(modules).map((m) => ({
-      ...m,
-      course_id: String(m.course_id),
-    })),
+    modules: modules.map((doc) => {
+      const json = toJSON(doc);
+      json.course_id = String(json.course_id);
+      json.attachments = (doc.attachments || []).map((att) => ({
+        id: String(att._id),
+        name: att.name,
+        mime_type: att.mime_type,
+        size: att.size,
+      }));
+      return json;
+    }),
   };
 }
 

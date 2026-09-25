@@ -36,6 +36,16 @@ export const remove = asyncHandler(async (req, res) => {
   return success(res, { module }, "Module deleted successfully");
 });
 
+export const addAttachment = asyncHandler(async (req, res) => {
+  const module = await moduleService.addModuleAttachment(req.params.id, req.body);
+  return success(res, { module }, "Document added");
+});
+
+export const removeAttachment = asyncHandler(async (req, res) => {
+  const module = await moduleService.removeModuleAttachment(req.params.id, req.params.attachmentId);
+  return success(res, { module }, "Document removed");
+});
+
 export const downloadAttachment = asyncHandler(async (req, res) => {
   const staff = req.user && ["admin", "instructor"].includes(req.user.role);
   const file = await moduleService.getModuleAttachment(req.params.id, req.params.attachmentId, {

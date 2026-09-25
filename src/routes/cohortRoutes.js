@@ -6,7 +6,7 @@ import * as issueController from "../controllers/issueController.js";
 import * as reportController from "../controllers/reportController.js";
 import { authenticate, authorizeRoles } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validationMiddleware.js";
-import { createCohortSchema, updateCohortSchema } from "../validators/cohortValidator.js";
+import { createCohortSchema, updateCohortSchema, updateTimetableSchema } from "../validators/cohortValidator.js";
 import {
   createAttendanceSessionSchema,
   listAttendanceSessionsSchema,
@@ -43,6 +43,7 @@ router.get("/:id/reports/scores", ...staff, validate(reportQuerySchema, "query")
 router.get("/:id/reports/issues", ...staff, validate(reportQuerySchema, "query"), reportController.issues);
 
 router.get("/:id", ...staff, cohortController.getOne);
+router.patch("/:id/timetable", ...staff, validate(updateTimetableSchema), cohortController.updateTimetable);
 router.post("/", ...adminOnly, validate(createCohortSchema), cohortController.create);
 router.patch("/:id", ...adminOnly, validate(updateCohortSchema), cohortController.update);
 router.delete("/:id", ...adminOnly, cohortController.remove);

@@ -40,6 +40,18 @@ export function serializeCohort(doc) {
     : (json.instructor_ids ?? []).map((id) => String(id?.id ?? id?._id ?? id)).filter(Boolean);
   json.course = course;
   json.instructors = instructors;
+  json.timetable = Array.isArray(json.timetable)
+    ? json.timetable.map((row) => ({
+        id: String(row.id ?? row._id),
+        day: row.day,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        module_id: row.module_id ? String(row.module_id.id ?? row.module_id._id ?? row.module_id) : null,
+        title: row.title ?? null,
+        room: row.room ?? null,
+        notes: row.notes ?? null,
+      }))
+    : [];
   return json;
 }
 
@@ -118,6 +130,28 @@ export async function updateCohort(user, id, payload) {
     runValidators: true,
   }).populate(POPULATE);
   if (!cohort) throw new AppError("Cohort not found", 404, "NOT_FOUND");
+  return serializeCohort(cohort);
+}
+
+export async function updateTimetable(user, id, timetable) {
+  if (!mongoose.isValidObjectId(id)) {
+    throw new AppError("Cohort not found", 404, "NOT_FOUND");
+  }
+  await assertCohortAccess(user, id);
+  const cohort = await Cohort.findById(id);
+  if (!cohort) throw new AppError("Cohort not found", 404, "NOT_FOUND");
+  cohort.timetable = (timetable || []).map((row) => ({
+    ...(row.id && mongoose.isValidObjectId(row.id) ? { _id: row.id } : {}),
+    day: row.day,
+    start_time: row.start_time,
+    end_time: row.end_time,
+    module_id: row.module_id && mongoose.isValidObjectId(row.module_id) ? row.module_id : null,
+    title: row.title?.trim() ? row.title.trim() : null,
+    room: row.room?.trim() ? row.room.trim() : null,
+    notes: row.notes?.trim() ? row.notes.trim() : null,
+  }));
+  await cohort.save();
+  await cohort.populate(POPULATE);
   return serializeCohort(cohort);
 }
 

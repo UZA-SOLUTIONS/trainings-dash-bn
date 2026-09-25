@@ -138,6 +138,45 @@ async function seedCurrentClass(instructor, course, modules) {
     if (records.length) await AttendanceRecord.insertMany(records);
   }
 
+  if (!current.timetable?.length && modules.length) {
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+    const slots = [
+      ["08:00", "10:00"],
+      ["10:15", "12:15"],
+      ["12:15", "13:15"],
+      ["13:15", "15:15"],
+      ["15:30", "17:00"],
+    ];
+    let slotIndex = 0;
+    current.timetable = days.flatMap((day) =>
+      slots.map(([start, end]) => {
+        if (start === "12:15") {
+          return {
+            day,
+            start_time: start,
+            end_time: end,
+            module_id: null,
+            title: "Break",
+            room: null,
+            notes: null,
+          };
+        }
+        const mod = modules[slotIndex % modules.length];
+        slotIndex += 1;
+        return {
+          day,
+          start_time: start,
+          end_time: end,
+          module_id: mod?._id ?? null,
+          title: null,
+          room: current.location || "Classroom",
+          notes: null,
+        };
+      }),
+    );
+    await current.save();
+  }
+
   const assessmentSpecs = [
     { title: "Safety quiz", type: "quiz", max: 20, date: sessionDates[2] ?? daysAgo(12), module: modules[0], final: false },
     { title: "Charging quiz", type: "quiz", max: 20, date: sessionDates[5] ?? daysAgo(8), module: modules[1], final: false },
